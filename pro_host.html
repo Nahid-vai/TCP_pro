@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NAHID BHAI — Secure Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ac: #00ffcc;
+        --ac-dim: #00ffcc88;
+        --ac-lite: #00ffcc11;
+        --prompt-color: #ff007f; 
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #030008;
+        font-family: 'JetBrains Mono', monospace;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow-x: hidden;
+        padding: 20px 0;
+      }
+      
+      canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 1; 
+      }
+      
+      .container {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 390px;
+        padding: 0 16px;
+      }
+      
+      .card {
+        position: relative;
+        background: rgba(8, 2, 18, 0.9); 
+        border: 2px solid var(--ac);
+        border-radius: 16px;
+        padding: 36px 32px 24px 32px;
+        box-shadow: 0 0 30px var(--ac-dim); 
+        transition: all 0.5s ease; 
+        backdrop-filter: blur(8px);
+      }
+
+      .visit-badge {
+        position: absolute;
+        top: -18px; 
+        left: 50%;
+        transform: translateX(-50%);
+        background: #030008; 
+        padding: 4px 16px;
+        color: var(--ac);
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        white-space: nowrap;
+        text-shadow: 0 0 10px var(--ac);
+        border: 1.5px solid var(--ac);
+        border-radius: 20px;
+        z-index: 11;
+      }
+      
+      .brand-logo-wrap {
+        text-align: center;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+      }
+      .brand-logo {
+        width: 100px; 
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--ac); 
+        filter: drop-shadow(0 0 15px var(--ac)); 
+        padding: 2px;
+        background: #000;
+        transition: all 0.5s ease;
+      }
+
+      .brand {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ac);
+        letter-spacing: 3px;
+        text-shadow: 0 0 15px var(--ac); 
+        transition: all 0.5s ease;
+      }
+      .sub {
+        text-align: center;
+        font-size: 11px;
+        color: var(--ac-dim);
+        letter-spacing: 2px;
+        margin-top: 4px;
+        margin-bottom: 24px; 
+        transition: all 0.5s ease;
+      }
+      
+      .prompt {
+        font-size: 13px;
+        color: var(--prompt-color);
+        margin-bottom: 16px; 
+        transition: all 0.5s ease; 
+        font-weight: bold;
+        text-shadow: 0 0 8px var(--prompt-color);
+      }
+      
+      .cursor {
+        display: inline-block;
+        width: 8px;
+        height: 15px;
+        background: var(--prompt-color);
+        margin-left: 4px;
+        vertical-align: middle;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(15, 5, 25, 0.8); 
+        border: 2px solid var(--ac); 
+        border-radius: 8px;
+        color: #ffffff; 
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px; 
+        font-weight: 700;
+        outline: none;
+        margin-bottom: 14px;
+        box-shadow: inset 0 0 8px var(--ac-lite);
+        transition: all 0.3s ease;
+      }
+      input:focus {
+        border-color: #ffffff; 
+        box-shadow: 0 0 15px var(--ac);
+      }
+      input::placeholder {
+        color: var(--ac-dim); 
+      }
+
+      .pw-wrap { position: relative; margin-bottom: 20px; }
+      .pw-wrap input { margin-bottom: 0; padding-right: 44px; }
+      .eye-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--ac);
+        font-size: 18px;
+        padding: 0;
+      }
+      
+      .remember-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--ac);
+      }
+      .remember-wrap input[type="checkbox"] {
+        width: auto;
+        margin-bottom: 0;
+        accent-color: var(--ac);
+      }
+
+      .auth-btn {
+        width: 100%;
+        padding: 13px;
+        background: var(--ac-lite);
+        border: 2px solid var(--ac);
+        border-radius: 8px;
+        color: var(--ac);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        cursor: pointer;
+        box-shadow: 0 0 15px var(--ac-lite);
+        transition: all 0.3s ease;
+      }
+      .auth-btn:hover {
+        background: var(--ac);
+        color: #000;
+        box-shadow: 0 0 25px var(--ac);
+      }
+
+      /* সোশ্যাল মিডিয়া লিংক সেকশন */
+      .social-title {
+        text-align: center;
+        font-size: 11px;
+        color: var(--ac);
+        margin-top: 20px;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+      }
+      .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .social-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1.5px solid var(--ac);
+        border-radius: 8px;
+        color: var(--ac);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: bold;
+        background: rgba(15, 5, 25, 0.6);
+        transition: all 0.3s ease;
+      }
+      .social-icon:hover {
+        background: var(--ac);
+        color: #000;
+        box-shadow: 0 0 12px var(--ac);
+        transform: translateY(-2px);
+      }
+      
+      .footer {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 10px;
+        color: var(--ac-dim);
+        letter-spacing: 1px;
+        line-height: 1.8;
+        opacity: .8;
+      }
+      .admin-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        font-size: 11px;
+        color: var(--ac);
+        text-decoration: none;
+        transition: color .2s;
+      }
+      .admin-link:hover { text-shadow: 0 0 8px var(--ac); }
+    </style>
+  </head>
+  <body>
+    <canvas id="matrix"></canvas>
+    <div class="container">
+      <div class="card">
+        <div class="visit-badge">WEBSITE VISIT: 9999</div>
+        <div class="brand-logo-wrap">
+          <img src="https://i.postimg.cc/WzJkJpRd/IMG-20260413-154605-743.jpg" alt="Logo" class="brand-logo" />
+        </div>
+        
+        <!-- ব্র্যান্ড নেম পরিবর্তন করা হয়েছে -->
+        <div class="brand">NAHID BHAI</div>
+        <div class="sub">$ SECURE TERMINAL V5.5</div>
+        <div class="prompt">
+          &gt; LOGIN_REQUIRED NAHID BHAI 💘
+          <span class="cursor"></span>
+        </div>
+        <audio id="loginSound" src="https://files.catbox.moe/0n33xi.mp3" preload="auto"></audio>
+        <form method="POST" id="loginForm">
+          <input type="text" name="username" id="username" placeholder="Username" required autocomplete="username" />
+          <div class="pw-wrap">
+            <input type="password" name="password" placeholder="Password" id="pw" autocomplete="current-password" />
+            <button type="button" class="eye-btn" onclick="togglePw()">👁</button>
+          </div>
+          <label class="remember-wrap">
+            <input type="checkbox" id="rememberMe" />
+            Remember Credentials
+          </label>
+          <button type="submit" class="auth-btn" onclick="playAndSubmit(event)">
+            &gt;_&lt; LOGIN NOW
+          </button>
+        </form>
+
+        <a class="admin-link" href="/like.html">👍 LIKE BOT</a>
+
+        <!-- সোশ্যাল মিডিয়া লিংক সেকশন -->
+        <div class="social-title">&gt; CONNECT WITH ME &lt;</div>
+        <div class="social-links">
+          <a href="https://www.facebook.com/profile.php?id=61580614482618&mibextid=ZbWKwL" target="_blank" class="social-icon" title="Facebook">FB</a>
+          <a href="https://instagram.com/nahid_vai077" target="_blank" class="social-icon" title="Instagram">IG</a>
+          <a href="tiktok.com/@nahid.vai077" target="_blank" class="social-icon" title="TikTok">TK</a>
+          <a href="https://t.me/nahidpro19" target="_blank" class="social-icon" title="Telegram">TG</a>
+          <a href="https://wa.me/8801936745653?text=আমি%20তোমার%web_siteা%চালাচ্ছি%20❤️" target="_blank" class="social-icon" title="WhatsApp">WA</a>
+        </div>
+
+        <div class="footer">
+          ⚠ UNAUTHORIZED POWER ACCESS PROHIBITED<br />
+          NAHID BHAI SECURE SYSTEMS ⚠
+        </div>
+      </div>
+    </div>
+    <script>
+      window.addEventListener('load', () => {
+        const savedUser = localStorage.getItem('savedUsername');
+        const savedPass = localStorage.getItem('savedPassword');
+        if (savedUser && savedPass) {
+          document.getElementById('username').value = savedUser;
+          document.getElementById('pw').value = savedPass;
+          document.getElementById('rememberMe').checked = true;
+        }
+      });
+
+      function playAndSubmit(event) {
+        event.preventDefault();
+        const sound = document.getElementById('loginSound');
+        const form = document.getElementById('loginForm');
+        const remember = document.getElementById('rememberMe').checked;
+        
+        if (remember) {
+          localStorage.setItem('savedUsername', document.getElementById('username').value);
+          localStorage.setItem('savedPassword', document.getElementById('pw').value);
+        } else {
+          localStorage.removeItem('savedUsername');
+          localStorage.removeItem('savedPassword');
+        }
+
+        sound.play(); 
+        setTimeout(() => {
+          form.submit();
+        }, 500); 
+      }
+
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()アイウエオカキクケコサシスセソ";
+      const fontSize = 16;
+      const columns = canvas.width / fontSize;
+      const drops = [];
+      for (let x = 0; x < columns; x++) { drops[x] = 1; }
+
+      function drawMatrix() {
+        ctx.fillStyle = "rgba(3, 0, 8, 0.15)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim();
+        ctx.fillStyle = themeColor; 
+        ctx.font = fontSize + "px 'JetBrains Mono'";
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars.charAt(Math.floor(Math.random() * chars.length));
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) { drops[i] = 0; }
+          drops[i]++;
+        }
+      }
+      setInterval(drawMatrix, 50);
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      function togglePw() {
+        const p = document.getElementById('pw');
+        p.type = p.type === 'password' ? 'text' : 'password';
+      }
+
+      let autoInterval = null;
+      const themeColors = ["#00ffcc", "#ff007f", "#38bdf8", "#00ff41", "#fbbf24", "#a855f7", "#ec4899"];
+      let colorIndex = 0;
+
+      function startColorLoop() {
+        setInterval(() => {
+          const nextColor = themeColors[colorIndex];
+          const promptNextColor = themeColors[(colorIndex + 1) % themeColors.length];
+          document.documentElement.style.setProperty('--ac', nextColor);
+          document.documentElement.style.setProperty('--ac-dim', nextColor + '88');
+          document.documentElement.style.setProperty('--ac-lite', nextColor + '11');
+          document.documentElement.style.setProperty('--prompt-color', promptNextColor);
+          colorIndex = (colorIndex + 1) % themeColors.length;
+        }, 2000);
+      }
+      window.addEventListener('load', startColorLoop);
+    </script>
+  </body>
+</html>
